@@ -40,8 +40,10 @@ export default function AdminCSVUpload() {
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(parseResult.valid),
 });
+ // ✅ THIS updates UI immediately
+  addPatients(parseResult.valid as Patient[]);
+ //wait fetchPatients(); // load fresh data from MongoDB
 
-addPatients(parseResult.valid as Patient[]);
 
         }
       } else {
@@ -60,7 +62,9 @@ addPatients(parseResult.valid as Patient[]);
   body: JSON.stringify(parseResult.valid),
 });
 
-addVisits(parseResult.valid as Visit[]);
+// ✅ THIS updates UI immediately
+  addVisits(parseResult.valid as Visit[]);
+//await fetchVisits();
 
         }
       }

@@ -13,8 +13,7 @@ export function DoctorForm({ onClose }: DoctorFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [formData, setFormData] = useState<Partial<Doctor>>({
-    doctor_id: generateDoctorId(),
+  const [formData, setFormData] = useState({
     doctor_name: '',
     user_id: '',
     password: '',
@@ -47,25 +46,33 @@ export function DoctorForm({ onClose }: DoctorFormProps) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        doctor_id: formData.doctor_id,
+        doctor_name: formData.doctor_name,
+        user_id: formData.user_id,
+        password: formData.password,
+        doctor_speciality: formData.doctor_speciality,
+      }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error("Failed to save doctor");
+      throw new Error(data.message || "Failed to save doctor");
     }
 
-    const savedDoctor = await response.json();
-
-    // 👇 THIS MAKES IT APPEAR IN UI
-    addDoctor(savedDoctor.doctor);
-
     toast.success("Doctor added successfully");
+
+    // update UI immediately
+    addDoctor(data);
+
     onClose();
-  } catch (error) {
-    console.error(error);
-    toast.error("Error saving doctor");
+  } catch (error: any) {
+    console.error("SAVE DOCTOR ERROR:", error);
+    toast.error(error.message || "Error saving doctor");
   }
 };
+
 
   return (
     <div className="space-y-4">

@@ -127,7 +127,6 @@ case "ADD_PRESCRIPTION":
     prescriptions: [...state.prescriptions, action.payload],
   };
 
-  
 
   }
 }
@@ -182,6 +181,9 @@ const HospitalContext = createContext<HospitalContextType | undefined>(undefined
 export function HospitalProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(hospitalReducer, initialState);
 
+
+
+  
   // Persist state to localStorage
   useEffect(() => {
     const savedState = localStorage.getItem('hospitalState');
@@ -240,6 +242,22 @@ useEffect(() => {
   const deletePatient = useCallback((patientId: string) => {
     dispatch({ type: 'DELETE_PATIENT', payload: patientId });
   }, []);
+
+
+  const fetchPatients = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/patients");
+    const data = await res.json();
+
+    dispatch({
+      type: "SET_PATIENTS",
+      payload: data,
+    });
+  } catch (err) {
+    console.error("Failed to fetch patients", err);
+  }
+};
+
 
   // Doctor actions
   const addDoctor = useCallback((doctor: Doctor) => {
@@ -467,3 +485,4 @@ export function useHospital() {
   }
   return context;
 }
+

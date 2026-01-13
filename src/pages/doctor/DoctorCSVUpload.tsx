@@ -41,9 +41,22 @@ export default function DoctorCSVUpload() {
       );
       setResult(parseResult);
       
+      // if (parseResult.valid.length > 0) {
+      //   addPrescriptions(parseResult.valid);
+      // }
+
       if (parseResult.valid.length > 0) {
-        addPrescriptions(parseResult.valid);
-      }
+  // 1️⃣ Save to MongoDB
+  await fetch("http://localhost:5000/api/prescriptions/bulk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(parseResult.valid),
+  });
+
+  // 2️⃣ Update UI immediately
+  addPrescriptions(parseResult.valid);
+}
+
       
       toast.success('CSV processed successfully');
     } catch (error) {

@@ -50,19 +50,16 @@ router.post("/", async (req, res) => {
 
 router.post("/bulk", async (req, res) => {
   try {
-    const patients = req.body;
-
-    if (!Array.isArray(patients)) {
-      return res.status(400).json({ message: "Expected array" });
-    }
-
-    await Patient.insertMany(patients, { ordered: false });
-
-    res.status(201).json({ message: "Patients saved" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to save patients" });
+    const patients = await Patient.insertMany(req.body);
+    res.status(201).json(patients);
+  } catch (error) {
+    res.status(500).json({ message: "Bulk insert failed" });
   }
+});
+
+router.get("/", async (req, res) => {
+  const patients = await Patient.find();
+  res.json(patients);
 });
 
 

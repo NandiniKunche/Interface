@@ -53,21 +53,42 @@ router.post("/", async (req, res) => {
 
 router.post("/bulk", async (req, res) => {
   try {
-    const visits = req.body;
-
-    if (!Array.isArray(visits)) {
-      return res.status(400).json({ message: "Expected array" });
-    }
-
-    await Visit.insertMany(visits, { ordered: false });
-
-    res.status(201).json({ message: "Visits saved" });
+    const visits = req.body; // array of visits
+    const inserted = await Visit.insertMany(visits);
+    res.status(201).json(inserted);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to save visits" });
+    res.status(500).json({ message: err.message });
   }
 });
 
+
+
+
+
+
+router.post("/bulk", async (req, res) => {
+  try {
+    const prescriptions = req.body;
+
+    if (!Array.isArray(prescriptions)) {
+      return res.status(400).json({ message: "Invalid data format" });
+    }
+
+    const saved = await Prescription.insertMany(prescriptions, {
+      ordered: false
+    });
+
+    res.status(201).json({
+      message: "Prescriptions saved to MongoDB",
+      count: saved.length
+    });
+
+  } catch (error) {
+    console.error("Prescription bulk insert error:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
 
 module.exports = router;
 
