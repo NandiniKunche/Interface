@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 type UploadType = 'patients' | 'visits';
 
 export default function AdminCSVUpload() {
-  const { state, addPatients, addVisits } = useHospital();
+  const { state, addPatients, addVisits,} = useHospital();
   const [uploadType, setUploadType] = useState<UploadType>('patients');
   const [isDragging, setIsDragging] = useState(false);
   const [result, setResult] = useState<CSVParseResult<Patient | Visit> | null>(null);
@@ -42,7 +42,7 @@ export default function AdminCSVUpload() {
 });
  // ✅ THIS updates UI immediately
   addPatients(parseResult.valid as Patient[]);
- //wait fetchPatients(); // load fresh data from MongoDB
+   //await fetchPatients(); // load fresh data from MongoDB
 
 
         }
