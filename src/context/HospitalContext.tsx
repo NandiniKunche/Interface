@@ -4,6 +4,8 @@ import {
   DEMO_CREDENTIALS, SeverityChange
 } from '@/types/hospital';
 import Doctors from '@/pages/admin/Doctors';
+import { toast } from "sonner";
+
 
 // State interface
 interface HospitalState {
@@ -36,7 +38,10 @@ type HospitalAction =
   | { type: 'LOGOUT' }
   | { type: 'LOAD_STATE'; payload: HospitalState }
   | { type: 'SET_DOCTORS' ; payload: Doctor[]}
-  | { type:  'SET_PRESCRIPTIONS'; payload: Prescription[]};
+  | { type:  'SET_PRESCRIPTIONS'; payload: Prescription[]}
+  | { type: 'SET_PATIENTS'; payload: Patient[] }
+  | { type: 'SET_VISITS'; payload: Visit[]};
+
 
 
 // Initial state with demo doctors
@@ -127,6 +132,18 @@ case "ADD_PRESCRIPTION":
     prescriptions: [...state.prescriptions, action.payload],
   };
 
+  case 'SET_PATIENTS':
+  return {
+    ...state,
+    patients: action.payload,
+  };
+  
+  case "SET_VISITS":
+  return {
+    ...state,
+    visits: action.payload,
+  };
+
 
   }
 }
@@ -181,6 +198,22 @@ const HospitalContext = createContext<HospitalContextType | undefined>(undefined
 export function HospitalProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(hospitalReducer, initialState);
 
+// 🔹 1️⃣ DEFINE fetchPatients FIRST
+  const fetchPatients = useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/patients");
+      const data = await res.json();
+
+      dispatch({ type: "SET_PATIENTS", payload: data });
+    } catch (error) {
+      console.error("Failed to fetch patients", error);
+    }
+  }, []);
+  
+
+useEffect(() => {
+  fetchPatients();
+}, [fetchPatients]);
 
 
   
@@ -201,6 +234,8 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const { auth, ...stateToSave } = state;
     localStorage.setItem('hospitalState', JSON.stringify(stateToSave));
   }, [state.patients, state.doctors, state.visits, state.prescriptions]);
+
+
 
   // Check session on mount
   useEffect(() => {
@@ -239,24 +274,77 @@ useEffect(() => {
     dispatch({ type: 'UPDATE_PATIENT', payload: patient });
   }, []);
 
-  const deletePatient = useCallback((patientId: string) => {
-    dispatch({ type: 'DELETE_PATIENT', payload: patientId });
-  }, []);
+  // const deletePatient = useCallback((patientId: string) => {
+  //   dispatch({ type: 'DELETE_PATIENT', payload: patientId });
+  // }, []);
+  
 
+//   const deletePatient = async (id: string) => {
+//   try {
+//     await fetch(`http://localhost:5000/api/patients/${id}`, {
+//       method: 'DELETE',
+//     });
 
-  const fetchPatients = async () => {
+//     await fetchPatients(); // 🔥 VERY IMPORTANT
+//   } catch (error) {
+//     console.error('Delete failed', error);
+//   }
+// };
+
+const deletePatient = useCallback(async (patientId: string | undefined) => {
+  if (!patientId) {
+    console.error("❌ patientId is undefined");
+    toast.error("Invalid patient ID");
+    return;
+  }
+
   try {
-    const res = await fetch("http://localhost:5000/api/patients");
-    const data = await res.json();
+    const res = await fetch(
+      `http://localhost:5000/api/patients/${patientId.trim()}`,
+      { method: "DELETE" }
+    );
+
+    if (!res.ok) throw new Error("Delete failed");
 
     dispatch({
-      type: "SET_PATIENTS",
-      payload: data,
+      type: "DELETE_PATIENT",
+      payload: patientId.trim(),
     });
-  } catch (err) {
-    console.error("Failed to fetch patients", err);
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete patient");
   }
-};
+}, []);
+
+
+
+
+//   const fetchPatients = async () => {
+//   try {
+//     const res = await fetch("http://localhost:5000/api/patients");
+//     const data = await res.json();
+
+//     dispatch({
+//       type: "SET_PATIENTS",
+//       payload: data,
+//     });
+//   } catch (err) {
+//     console.error("Failed to fetch patients", err);
+//   }
+// };
+
+
+// const fetchPatients = useCallback(async () => {
+//   try {
+//     const res = await fetch('http://localhost:5000/api/patients');
+//     const data = await res.json();
+
+//     dispatch({ type: 'SET_PATIENTS', payload: data });
+//   } catch (error) {
+//     console.error(error);
+//   }
+// }, []);
+
 
 
   // Doctor actions
@@ -272,9 +360,37 @@ useEffect(() => {
     dispatch({ type: 'UPDATE_DOCTOR', payload: doctor });
   }, []);
 
-  const deleteDoctor = useCallback((doctorId: string) => {
-    dispatch({ type: 'DELETE_DOCTOR', payload: doctorId });
-  }, []);
+  // const deleteDoctor = useCallback((doctorId: string) => {
+  //   dispatch({ type: 'DELETE_DOCTOR', payload: doctorId });
+  // }, []);
+
+  const deleteDoctor = useCallback(async (doctorId?: string) => {
+  if (!doctorId) {
+    console.error("doctorId is undefined");
+    toast.error("Invalid doctor ID");
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/doctors/${doctorId.trim()}`,
+      { method: "DELETE" }
+    );
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    dispatch({
+      type: "DELETE_DOCTOR",
+      payload: doctorId.trim(),
+    });
+
+    toast.success("Doctor deleted successfully");
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete doctor");
+  }
+}, []);
+
 
   // Visit actions
   const addVisit = useCallback((visit: Visit) => {
@@ -289,9 +405,56 @@ useEffect(() => {
     dispatch({ type: 'UPDATE_VISIT', payload: visit });
   }, []);
 
-  const deleteVisit = useCallback((visitId: string) => {
-    dispatch({ type: 'DELETE_VISIT', payload: visitId });
-  }, []);
+  // const deleteVisit = useCallback((visitId: string) => {
+  //   dispatch({ type: 'DELETE_VISIT', payload: visitId });
+  // }, []);
+    
+  const deleteVisit = useCallback(async (visitId: string | undefined) => {
+  if (!visitId) {
+    console.error("❌ visitId is undefined");
+    toast.error("Invalid visit ID");
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/visits/${visitId.trim()}`,
+      { method: "DELETE" }
+    );
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    dispatch({
+      type: "DELETE_VISIT",
+      payload: visitId.trim(),
+    });
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to delete visit");
+  }
+}, []);
+
+const fetchVisits = useCallback(async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/visits");
+    const data = await res.json();
+
+    dispatch({
+      type: "SET_VISITS",
+      payload: data,
+    });
+  } catch (error) {
+    console.error("Failed to fetch visits", error);
+  }
+}, []);
+
+useEffect(() => {
+  fetchVisits();
+}, []);
+
+
+
+
 
   // Prescription actions
   const addPrescription = useCallback((prescription: Prescription) => {
@@ -306,9 +469,64 @@ useEffect(() => {
     dispatch({ type: 'UPDATE_PRESCRIPTION', payload: prescription });
   }, []);
 
-  const deletePrescription = useCallback((prescriptionId: string) => {
-    dispatch({ type: 'DELETE_PRESCRIPTION', payload: prescriptionId });
-  }, []);
+  // const deletePrescription = useCallback((prescriptionId: string) => {
+  //   dispatch({ type: 'DELETE_PRESCRIPTION', payload: prescriptionId });
+  // }, []);
+
+  const deletePrescription = useCallback(
+  async (prescriptionId?: string) => {
+    if (!prescriptionId) {
+      console.error("prescriptionId is undefined");
+      toast.error("Invalid prescription ID");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/prescriptions/${prescriptionId.trim()}`,
+        { method: "DELETE" }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Delete failed");
+      }
+
+      dispatch({
+        type: "DELETE_PRESCRIPTION",
+        payload: prescriptionId.trim(),
+      });
+
+      toast.success("Prescription deleted successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete prescription");
+    }
+  },
+  []
+);
+
+const fetchPrescriptions = useCallback(async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/prescriptions");
+    const data = await res.json();
+
+    dispatch({
+      type: "SET_PRESCRIPTIONS",
+      payload: data,
+    });
+  } catch (err) {
+    console.error("Failed to fetch prescriptions", err);
+  }
+}, []);
+
+
+useEffect(() => {
+  fetchPrescriptions();
+}, []);
+
+
 
   // Auth actions
   const login = useCallback((userId: string, password: string, portal: 'admin' | 'doctor'): { success: boolean; error?: string } => {

@@ -39,6 +39,8 @@ export default function Prescriptions() {
 
   const handleDelete = (prescription: Prescription) => {
     if (confirm('Are you sure you want to delete this prescription?')) {
+      console.log("Deleting prescription:", prescription);
+
       deletePrescription(prescription.prescription_id);
       toast.success('Prescription deleted successfully');
     }

@@ -15,6 +15,16 @@ export default function AdminCSVUpload() {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // 🔹 Helper to split large CSV uploads into smaller chunks
+  const chunkArray = <T,>(array: T[], size: number): T[][] => {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+  };
+
+
   const handleFile = async (file: File) => {
     if (!file.name.endsWith('.csv')) {
       toast.error('Please upload a CSV file');
@@ -35,12 +45,24 @@ export default function AdminCSVUpload() {
         setResult(parseResult);
         
         if (parseResult.valid.length > 0) {
-          await fetch("http://localhost:5000/api/patients/bulk", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(parseResult.valid),
-});
+  //         await fetch("http://localhost:5000/api/patients/bulk", {
+  // method: "POST",
+  // headers: { "Content-Type": "application/json" },
+  // body: JSON.stringify(parseResult.valid),
+//});
+
+const patientChunks = chunkArray(parseResult.valid, 500);
+
+for (const chunk of patientChunks) {
+  await fetch("http://localhost:5000/api/patients/bulk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(chunk),
+  });
+}
+
  // ✅ THIS updates UI immediately
+ console.log("CSV patients added:", parseResult.valid);
   addPatients(parseResult.valid as Patient[]);
    //await fetchPatients(); // load fresh data from MongoDB
 
@@ -56,13 +78,26 @@ export default function AdminCSVUpload() {
         setResult(parseResult);
         
         if (parseResult.valid.length > 0) {
-         await fetch("http://localhost:5000/api/visits/bulk", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(parseResult.valid),
-});
+//          await fetch("http://localhost:5000/api/visits/bulk", {
+//   method: "POST",
+//   headers: { "Content-Type": "application/json" },
+//   body: JSON.stringify(parseResult.valid),
+// });
+
+const visitChunks = chunkArray(parseResult.valid, 500);
+
+for (const chunk of visitChunks) {
+  await fetch("http://localhost:5000/api/visits/bulk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(chunk),
+  });
+}
+
 
 // ✅ THIS updates UI immediately
+  
+  console.log("CSV visits:", parseResult.valid);
   addVisits(parseResult.valid as Visit[]);
 //await fetchVisits();
 

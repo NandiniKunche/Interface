@@ -83,5 +83,35 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+router.delete("/:doctorId", async (req, res) => {
+  try {
+    let { doctorId } = req.params;
+    doctorId = doctorId.trim();
+
+    console.log("Deleting doctor with doctor_id:", doctorId);
+
+    const deletedDoctor = await Doctor.findOneAndDelete({
+      doctor_id: doctorId,
+    });
+
+    if (!deletedDoctor) {
+      return res.status(404).json({
+        message: "Doctor not found",
+      });
+    }
+
+    res.json({
+      message: "Doctor deleted successfully",
+    });
+  } catch (error) {
+    console.error("Doctor delete error:", error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
+
+
 module.exports = router;
 

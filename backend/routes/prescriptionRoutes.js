@@ -45,4 +45,34 @@ router.post("/bulk", async (req, res) => {
 });
 
 
+router.delete("/:prescriptionId", async (req, res) => {
+  try {
+    let { prescriptionId } = req.params;
+    prescriptionId = prescriptionId.trim();
+
+    console.log("Deleting prescription:", prescriptionId);
+
+    const deletedPrescription = await Prescription.findOneAndDelete({
+      prescription_id: prescriptionId,
+    });
+
+    if (!deletedPrescription) {
+      return res.status(404).json({
+        message: "Prescription not found",
+      });
+    }
+
+    res.json({
+      message: "Prescription deleted successfully",
+    });
+  } catch (error) {
+    console.error("Prescription delete error:", error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
+
+
+
 module.exports = router;

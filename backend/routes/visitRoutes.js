@@ -90,5 +90,27 @@ router.post("/bulk", async (req, res) => {
   }
 });
 
+
+router.delete("/:visitId", async (req, res) => {
+  try {
+    let { visitId } = req.params;
+    visitId = visitId.trim();
+
+    const deletedVisit = await Visit.findOneAndDelete({
+      visit_id: { $regex: `^${visitId}$`, $options: "i" },
+    });
+
+    if (!deletedVisit) {
+      return res.status(404).json({ message: "Visit not found" });
+    }
+
+    res.json({ message: "Visit deleted successfully" });
+  } catch (error) {
+    console.error("Visit delete error:", error);
+    res.status(500).json({ message: "Error deleting visit" });
+  }
+});
+
+
 module.exports = router;
 
