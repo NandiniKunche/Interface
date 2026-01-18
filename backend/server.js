@@ -42,7 +42,7 @@ app.use(
 );
 
 // IMPORTANT: handle preflight requests
-app.options("*", cors());
+app.options("/*", cors());
 
 /* =========================
    MONGODB CONNECTION
