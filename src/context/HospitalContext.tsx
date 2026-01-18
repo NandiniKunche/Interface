@@ -230,10 +230,21 @@ useEffect(() => {
     }
   }, []);
 
+  // useEffect(() => {
+  //   const { auth, ...stateToSave } = state;
+  //   localStorage.setItem('hospitalState', JSON.stringify(stateToSave));
+  // }, [state.patients, state.doctors, state.visits, state.prescriptions]);
+
   useEffect(() => {
-    const { auth, ...stateToSave } = state;
-    localStorage.setItem('hospitalState', JSON.stringify(stateToSave));
-  }, [state.patients, state.doctors, state.visits, state.prescriptions]);
+  const lightState = {
+    auth: state.auth,
+    hospital: state.hospital,
+    uiPreferences: state.uiPreferences,
+  };
+
+  localStorage.setItem("hospitalState", JSON.stringify(lightState));
+}, [state.auth, state.hospital, state.uiPreferences]);
+
 
 
 
