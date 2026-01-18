@@ -1,3 +1,90 @@
+// // server.js
+// console.log("SERVER FILE STARTED");
+
+// const express = require("express");
+// const mongoose = require("mongoose");
+// const cors = require("cors");
+// require("dotenv").config();
+
+// const app = express();
+
+// /* =========================
+//    BODY SIZE LIMITS
+// ========================= */
+// app.use(express.json({ limit: "100mb" }));
+// app.use(express.urlencoded({ limit: "100mb", extended: true }));
+
+// /* =========================
+//    CORS CONFIG (FIXED)
+// ========================= */
+// const allowedOrigins = [
+//   "http://localhost:8080",
+//   "http://localhost:3000",
+//   "https://project-rho-topaz-71.vercel.app"
+// ];
+
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       // allow Postman / server-to-server
+//       if (!origin) return callback(null, true);
+
+//       if (allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true
+//   })
+// );
+
+// // IMPORTANT: handle preflight requests
+// app.options("/*", cors());
+
+// /* =========================
+//    MONGODB CONNECTION
+// ========================= */
+// mongoose
+//   .connect(process.env.MONGO_URI)
+//   .then(() => console.log("MongoDB connected!"))
+//   .catch(err => console.error(err));
+
+// /* =========================
+//    TEST ROUTE
+// ========================= */
+// app.get("/", (req, res) => {
+//   res.send("Backend running");
+// });
+
+// /* =========================
+//    ROUTES
+// ========================= */
+// const userRoutes = require("./routes/userRoutes");
+// app.use("/api/users", userRoutes);
+
+// const patientRoutes = require("./routes/patientRoutes");
+// app.use("/api/patients", patientRoutes);
+
+// const visitRoutes = require("./routes/visitRoutes");
+// app.use("/api/visits", visitRoutes);
+
+// const doctorRoutes = require("./routes/doctorRoutes");
+// app.use("/api/doctors", doctorRoutes);
+
+// const prescriptionRoutes = require("./routes/prescriptionRoutes");
+// app.use("/api/prescriptions", prescriptionRoutes);
+
+// /* =========================
+//    START SERVER
+// ========================= */
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => console.log("Server on port " + PORT));
+
+
+
 // server.js
 console.log("SERVER FILE STARTED");
 
@@ -15,7 +102,7 @@ app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 /* =========================
-   CORS CONFIG (FIXED)
+   CORS CONFIG (FINAL FIX)
 ========================= */
 const allowedOrigins = [
   "http://localhost:8080",
@@ -25,24 +112,21 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // allow Postman / server-to-server
+    origin: (origin, callback) => {
+      // allow server-to-server, Postman, Render health checks
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(null, true);
       }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   })
 );
-
-// IMPORTANT: handle preflight requests
-app.options("/*", cors());
 
 /* =========================
    MONGODB CONNECTION
@@ -62,23 +146,15 @@ app.get("/", (req, res) => {
 /* =========================
    ROUTES
 ========================= */
-const userRoutes = require("./routes/userRoutes");
-app.use("/api/users", userRoutes);
-
-const patientRoutes = require("./routes/patientRoutes");
-app.use("/api/patients", patientRoutes);
-
-const visitRoutes = require("./routes/visitRoutes");
-app.use("/api/visits", visitRoutes);
-
-const doctorRoutes = require("./routes/doctorRoutes");
-app.use("/api/doctors", doctorRoutes);
-
-const prescriptionRoutes = require("./routes/prescriptionRoutes");
-app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/patients", require("./routes/patientRoutes"));
+app.use("/api/visits", require("./routes/visitRoutes"));
+app.use("/api/doctors", require("./routes/doctorRoutes"));
+app.use("/api/prescriptions", require("./routes/prescriptionRoutes"));
 
 /* =========================
    START SERVER
 ========================= */
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log("Server on port " + PORT));
+
