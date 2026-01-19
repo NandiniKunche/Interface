@@ -4,6 +4,8 @@ import { useHospital } from '@/context/HospitalContext';
 import { parsePatientCSV, parseVisitCSV, CSVParseResult } from '@/utils/csvParser';
 import { Patient, Visit } from '@/types/hospital';
 import { toast } from 'sonner';
+import { PatientAPI, VisitAPI } from "@/services/api";
+
 
 type UploadType = 'patients' | 'visits';
 
@@ -54,12 +56,14 @@ export default function AdminCSVUpload() {
 const patientChunks = chunkArray(parseResult.valid, 500);
 
 for (const chunk of patientChunks) {
-  await fetch("http://localhost:5000/api/patients/bulk", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(chunk),
-  });
-}
+//   await fetch("http://localhost:5000/api/patients/bulk", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify(chunk),
+//   });
+// }
+await PatientAPI.createBulk(parseResult.valid);
+
 
  // ✅ THIS updates UI immediately
  console.log("CSV patients added:", parseResult.valid);
@@ -81,17 +85,19 @@ for (const chunk of patientChunks) {
 //          await fetch("http://localhost:5000/api/visits/bulk", {
 //   method: "POST",
 //   headers: { "Content-Type": "application/json" },
-//   body: JSON.stringify(parseResult.valid),
-// });
+//   body: JSON.stringify(parseResult.valid),});
+        }
 
 const visitChunks = chunkArray(parseResult.valid, 500);
 
 for (const chunk of visitChunks) {
-  await fetch("http://localhost:5000/api/visits/bulk", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(chunk),
-  });
+  // await fetch("http://localhost:5000/api/visits/bulk", {
+  //   method: "POST",
+  //   headers: { "Content-Type": "application/json" },
+  //   body: JSON.stringify(chunk),
+  // });
+  await VisitAPI.createBulk(parseResult.valid);
+
 }
 
 
